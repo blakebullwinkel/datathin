@@ -1,8 +1,18 @@
-import helpers
+import datathin.helpers as helpers
 import warnings
 import numpy as np
 
-def datathin(data, family, K=2, epsilon=None, arg=None):
+from typing import Union, List
+from pydantic import BaseModel, validator
+
+class DataThinner(BaseModel):
+    data: Union[List[Union[int, float]], np.ndarray]
+    family: str
+    K: int = 2
+    epsilon: Union[List[float], np.ndarray, None] = None
+    arg: Union[int, float, List[Union[int, float]], np.ndarray, None] = None
+
+def datathin(data, family, K=2, epsilon=None, arg=None) -> np.ndarray:
     data = np.array(data)
     data_shape = data.shape
     # TODO: preprocess arg in a better way than this
@@ -57,37 +67,42 @@ def datathin(data, family, K=2, epsilon=None, arg=None):
             arg = arg*np.ones(data_shape)
 
     if family == "poisson":
-        helpers.poisthin(data, epsilon)
+        X = helpers.poisthin(data, epsilon)
     elif family == "negative binomial":
-        helpers.nbthin(data, epsilon, arg)
+        X = helpers.nbthin(data, epsilon, arg)
     elif family in ["normal", "gaussian"]:
-        helpers.normthin(data, epsilon, arg)
+        X = helpers.normthin(data, epsilon, arg)
     elif family in ["normal-variance", "gaussian-variance"]:
-        helpers.normvarthin(data, arg, K)
+        X = helpers.normvarthin(data, arg, K)
     elif family in ["mvnormal", "mvgaussian"]:
-        helpers.mvnormthin(data, epsilon, arg)
+        X = helpers.mvnormthin(data, epsilon, arg)
     elif family == "binomial":
-        helpers.binomthin(data, epsilon, arg)
+        X = helpers.binomthin(data, epsilon, arg)
     elif family == "multinomial":
-        helpers.multinomthin(data, epsilon, arg)
+        X = helpers.multinomthin(data, epsilon, arg)
     elif family == "exponential":
-        helpers.gammathin(data, epsilon, np.ones(data_shape))
+        X = helpers.gammathin(data, epsilon, np.ones(data_shape))
     elif family == "gamma":
-        helpers.gammathin(data, epsilon, arg)
+        X = helpers.gammathin(data, epsilon, arg)
     elif family == "chi-squared":
-        helpers.chisqthin(data, K)
+        X = helpers.chisqthin(data, K)
     elif family == "gamma-weibull":
-        helpers.gammaweibullthin(data, K, arg)
+        X = helpers.gammaweibullthin(data, K, arg)
     elif family == "weibull":
-        helpers.weibullthin(data, arg, K)
+        X = helpers.weibullthin(data, arg, K)
     elif family == "pareto":
-        helpers.paretothin(data, arg, K)
+        X = helpers.paretothin(data, arg, K)
     elif family == "shifted-exponential":
-        helpers.shiftexpthin(data, arg, K)
+        X = helpers.shiftexpthin(data, arg, K)
     elif family == "scaled-uniform":
-        helpers.scaledbetathin(data, np.ones(data_shape), K)
+        X = helpers.scaledbetathin(data, np.ones(data_shape), K)
     elif family == "scaled-beta":
-        helpers.scaledbetathin(data, arg, K)
+        X = helpers.scaledbetathin(data, arg, K)
     else:
         raise ValueError(f"Family `{family}` not recognized.")
+    
+    return X
 
+if __name__ == "__main__":
+
+    pass
