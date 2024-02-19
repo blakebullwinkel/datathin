@@ -88,6 +88,10 @@ def nbthin(data, epsilon, b):
 
     return X
 
+def normvarthin(data, mu, K):
+    X = gammathin((data - mu)**2, np.repeat(1/K, K), 0.5*np.ones(data.shape))
+    return X
+
 def mvnormthin(data, epsilon, sigma):
     if len(sigma.shape) == 2:
         temp = np.zeros((data.shape[0], *sigma.shape))
