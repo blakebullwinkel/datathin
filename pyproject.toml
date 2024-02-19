@@ -1,0 +1,24 @@
+[project]
+name = "datathin"
+version = "0.1.0"
+description = "Data thinning in Python"
+authors = [
+    {name = "bbullwinkel"}
+]
+readme = "README.md"
+license = {text = "MIT"}
+keywords = [
+    "data-thinning",
+    "clustering"
+]
+requires-python = ">=3.10, <3.11"
+dependencies = [
+    "numpy>=1.26.2",
+    "pydantic>2"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pre-commit>=3.3.3",
+    "pytest>=7.3.1"
+]
