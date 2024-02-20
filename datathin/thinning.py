@@ -6,12 +6,11 @@ from datathin.helpers import *
 def datathin(data, family, K=2, epsilon=None, arg=None) -> np.ndarray:
 
     # Validate inputs
-    if isinstance(data, list):
-        data = np.array(data)
-    elif isinstance(data, np.ndarray):
-        pass
-    else:
-        raise ValueError("`data` must be either a list or numpy array.")
+    if not isinstance(data, np.ndarray):
+        if isinstance(data, list):
+            data = np.array(data)
+        else:
+            raise ValueError("`data` must be either a list or numpy array.")
     data_shape = data.shape
 
     if family in ["poisson", "exponential", "chi-squared", "scaled-uniform"]:
@@ -34,7 +33,7 @@ def datathin(data, family, K=2, epsilon=None, arg=None) -> np.ndarray:
                 arg = np.array(arg)
             else:
                 raise ValueError(
-                    "`arg` must be either a numerical value or array of numerical values."
+                    "`arg` must be either a numerical value or an array of numerical values."
                 )
         arg_shape = arg.shape
 
@@ -120,12 +119,3 @@ def datathin(data, family, K=2, epsilon=None, arg=None) -> np.ndarray:
         raise ValueError(f"Family `{family}` not recognized.")
 
     return X
-
-
-if __name__ == "__main__":
-
-    data = np.random.poisson(lam=7, size=(100000, 1))
-    print(data.shape)
-
-    X = datathin(data, family="poisson", K=2)
-    print(X.shape)
