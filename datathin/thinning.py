@@ -2,6 +2,7 @@ import warnings
 import numpy as np
 from datathin.helpers import *
 
+multivariate_distributions = ["mvnormal", "mvgaussian", "multinomial"]
 
 def datathin(data, family, K=2, epsilon=None, arg=None) -> np.ndarray:
 
@@ -17,7 +18,7 @@ def datathin(data, family, K=2, epsilon=None, arg=None) -> np.ndarray:
         if arg is not None:
             raise warnings.warn(
                 f"Extra parameter provided was not used in {family} thinning.",
-                UserWarning,
+                UserWarning
             )
     else:
         if arg is None:
@@ -39,23 +40,25 @@ def datathin(data, family, K=2, epsilon=None, arg=None) -> np.ndarray:
 
         if family in ["mvnormal", "mvgaussian"]:
             if len(arg_shape) == 2:
-                # TODO: check this condition
+                # For MVN with n x p data matrix, arg can either be 1) a p x p covariance matrix
                 if np.any(arg_shape != [data_shape[1], data_shape[1]]):
                     raise ValueError(
                         "Incorrect dimensions for multivariate normal covariance matrices."
                     )
             elif len(arg_shape) == 3:
+                # Or 2) arg can be an n x p x p array of covariance matrices
                 if np.any(arg_shape != [data_shape[0], data_shape[1], data_shape[1]]):
                     raise ValueError(
                         "Incorrect dimensions for multivariate normal covariance matrices."
                     )
         elif family == "multinomial":
-            if len(arg) not in [1, data_shape[0]]:
+            if arg_shape[0] != data_shape[0]:
+                # TODO: check this condition
                 raise ValueError(
                     "Incorrect dimensions for multinomial trials parameter."
                 )
         else:
-            if len(arg) > 1:
+            if arg_shape[0] > 1:
                 if np.any(arg_shape != data_shape):
                     raise ValueError(
                         "If `arg` is not a scalar, its dimensions must match those of `data`."
@@ -82,6 +85,18 @@ def datathin(data, family, K=2, epsilon=None, arg=None) -> np.ndarray:
                 raise warnings.warn(
                     "`K` parameter will be ignored in favor of the length of `epsilon`."
                 )
+        n_folds = len(epsilon)
+    else:
+        n_folds = K
+
+    # TODO: refine this, currently the idea is to flatten data array for univariate distributions
+    if family in [
+        "poisson",
+        "exponential",
+        "gamma",
+        "negative binomial",
+    ]:
+        data = data.flatten()
 
     if family == "poisson":
         X = poisthin(data, epsilon)
@@ -117,5 +132,7 @@ def datathin(data, family, K=2, epsilon=None, arg=None) -> np.ndarray:
         X = scaledbetathin(data, arg, K)
     else:
         raise ValueError(f"Family `{family}` not recognized.")
+    
+    X = X.reshape((*data_shape, n_folds))
 
     return X
