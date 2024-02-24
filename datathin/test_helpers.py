@@ -125,7 +125,7 @@ class TestNegativeBinomial:
 
 class TestBinomial:
 
-    data = np.random.negative_binomial(n=16, p=0.25, size=(100000,1))
+    data = np.random.binomial(n=16, p=0.25, size=(100000,1))
     X = datathin(data, family="binomial", arg=16)
 
     def test_means(self):
