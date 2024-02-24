@@ -95,6 +95,7 @@ def datathin(data, family, K=2, epsilon=None, arg=None) -> np.ndarray:
         "exponential",
         "gamma",
         "negative binomial",
+        "binomial",
     ]:
         data = data.flatten()
 
@@ -136,3 +137,9 @@ def datathin(data, family, K=2, epsilon=None, arg=None) -> np.ndarray:
     X = X.reshape((*data_shape, n_folds))
 
     return X
+
+if __name__ == "__main__":
+    data = np.random.binomial(n=16, p=0.25, size=(100000,1))
+    print(data.shape)
+    X = datathin(data, family="binomial", arg=16)
+    print(X.shape)

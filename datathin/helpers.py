@@ -54,7 +54,7 @@ def normthin(data, epsilon, sigma):
 
 def _multivariate_hypergeometric_helper(colors, nsample, size):
     rng = np.random.default_rng()
-    sample = rng.multivariate_hypergeometric(colors.astype(int), nsample[0], size)
+    sample = rng.multivariate_hypergeometric(colors.astype(int), nsample, size)
     return sample
 
 def binomthin(data, epsilon, pop):
