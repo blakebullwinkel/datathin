@@ -133,14 +133,12 @@ def multinomthin(data, epsilon, pop):
     nfold = len(epsilon)
     X = np.zeros((*data.shape, nfold), dtype=np.int64)
     resdat = data.copy()
-    pop2 = pop.copy()
 
     for j in range(data.shape[0]):
-        pop2 = pop[j][0]*epsilon
+        pop2 = pop[j]*epsilon
 
         for i in range(nfold-1):
-            # TODO: fix this [int()] silliness!
-            X[j,:,i] = _multivariate_hypergeometric_helper(data[j,:], [int(pop2[i])], 1)
+            X[j,:,i] = _multivariate_hypergeometric_helper(data[j,:], int(pop2[i]), 1)
             resdat[j,:] -= X[j,:,i]
 
     X[:,:,nfold-1] = resdat

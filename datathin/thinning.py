@@ -41,13 +41,13 @@ def datathin(data, family, K=2, epsilon=None, arg=None) -> np.ndarray:
         if family in ["mvnormal", "mvgaussian"]:
             if len(arg_shape) == 2:
                 # For MVN with n x p data matrix, arg can either be 1) a p x p covariance matrix
-                if np.any(arg_shape != [data_shape[1], data_shape[1]]):
+                if arg_shape != (data_shape[1], data_shape[1]):
                     raise ValueError(
                         "Incorrect dimensions for multivariate normal covariance matrices."
                     )
             elif len(arg_shape) == 3:
                 # Or 2) arg can be an n x p x p array of covariance matrices
-                if np.any(arg_shape != [data_shape[0], data_shape[1], data_shape[1]]):
+                if arg_shape != (data_shape[0], data_shape[1], data_shape[1]):
                     raise ValueError(
                         "Incorrect dimensions for multivariate normal covariance matrices."
                     )
@@ -59,7 +59,7 @@ def datathin(data, family, K=2, epsilon=None, arg=None) -> np.ndarray:
                 )
         else:
             if arg_shape[0] > 1:
-                if np.any(arg_shape != data_shape):
+                if arg_shape != data_shape:
                     raise ValueError(
                         "If `arg` is not a scalar, its dimensions must match those of `data`."
                     )
@@ -139,7 +139,8 @@ def datathin(data, family, K=2, epsilon=None, arg=None) -> np.ndarray:
     return X
 
 if __name__ == "__main__":
-    data = np.random.binomial(n=16, p=0.25, size=(100000,1))
+    n = 20; pvals = np.array([0.1, 0.2, 0.3, 0.4])
+    data = np.random.multinomial(n=n, pvals=pvals, size=100000)
     print(data.shape)
-    X = datathin(data, family="binomial", arg=16)
+    X = datathin(data, family="multinomial", arg=n)
     print(X.shape)
