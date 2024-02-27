@@ -14,9 +14,9 @@ def get_ith_fold(X, i):
 
 def get_train_test(X, data, i):
     """
-    Returns X_train and X_test, where X_test is the ith fold 
-    of X and X_train is computing using the property that 
-    X_train and X_test sum to data.
+    Returns X_train and X_test, where X_test is the ith fold of 
+    X and X_train is computing using the property that X_train 
+    and X_test sum to data.
     """
     X_test = get_ith_fold(X, i)
     X_train = data - X_test
@@ -122,9 +122,10 @@ def shape_helper(X, data, n_folds=2):
 
 # Thinning function tests
         
-np.random.seed(0)
-
 class TestPoisson:
+    """
+    Test class for Poisson data.
+    """
 
     data = np.random.poisson(lam=7, size=(100000,1))
     X = datathin(data, family="poisson", epsilon=[0.3, 0.7])
@@ -142,6 +143,9 @@ class TestPoisson:
         shape_helper(self.X, self.data)
 
 class TestExponential:
+    """
+    Test class for exponential data.
+    """
 
     data = np.random.exponential(scale=5, size=(100000,1))
     X = datathin(data, family="exponential", K=5)
@@ -159,6 +163,9 @@ class TestExponential:
         shape_helper(self.X, self.data, n_folds=5)
 
 class TestGamma:
+    """
+    Test class for gamma data.
+    """
 
     # figure out why size=(10000,2) doesn't work + test size=(10000,)
     data = np.random.gamma(shape=12, scale=1/2, size=(10000,1))
@@ -176,7 +183,11 @@ class TestGamma:
     def test_shape(self):
         shape_helper(self.X, self.data)
 
-class TestGaussian1:
+class TestGaussianMean1:
+    """
+    Test class for data drawn from a single Gaussian with known 
+    variance and unknown mean.
+    """
 
     data = np.random.normal(loc=5, scale=np.sqrt(2), size=(10000,10))
     X = datathin(data, family="normal", arg=2)
@@ -193,7 +204,11 @@ class TestGaussian1:
     def test_shape(self):
         shape_helper(self.X, self.data)
 
-class TestGaussian2:
+class TestGaussianMean2:
+    """
+    Test class for data drawn from multiple Gaussians with known
+    variances and unknown mean.
+    """
 
     data = np.random.normal(loc=5, scale=(np.sqrt(0.1), np.sqrt(2), np.sqrt(20)), size=(100000,3))
     correct_args = np.ones((100000,3))*np.array([0.1, 2, 20])
@@ -211,7 +226,30 @@ class TestGaussian2:
     def test_shape(self):
         shape_helper(self.X, self.data)
 
+class TestGaussianVariance:
+    """
+    Test class for data drawn from Gaussian with known mean and 
+    unknown variance.
+    """
+
+    mu = 5; var = 2
+    # TODO: size should be (10000,10) here; still have to add size tests
+    data = np.random.normal(mu, scale=np.sqrt(var), size=(100000,1))
+    X = datathin(data, family="normal-variance", arg=mu)
+
+    def test_means(self):
+        mean_helper(self.X, self.data, means=[1.0, 1.0])
+
+    def test_correlation(self):
+        correlation_helper(self.X, self.data)
+
+    def test_shape(self):
+        shape_helper(self.X, self.data)
+
 class TestNegativeBinomial:
+    """
+    Test class for negative binomial data.
+    """
 
     n = 7; mu = 6
     p = n / (n + mu)
@@ -231,6 +269,9 @@ class TestNegativeBinomial:
         shape_helper(self.X, self.data)
 
 class TestBinomial:
+    """
+    Test class for binomial data.
+    """
 
     data = np.random.binomial(n=16, p=0.25, size=(100000,1))
     X = datathin(data, family="binomial", arg=16)
@@ -249,7 +290,7 @@ class TestBinomial:
 
 class TestScaledBeta:
     """
-    For scaled beta we don't expect the folds to sum to data.
+    Test class for scaled beta data.
     """
 
     theta = 10; alpha = 7; beta = 1
@@ -267,6 +308,9 @@ class TestScaledBeta:
         shape_helper(self.X, self.data)
 
 class TestShiftedExponential:
+    """
+    Test class for shifted exponential data.
+    """
 
     lam = 2
     data = 6 + np.random.exponential(1/lam, size=(100000, 1))
@@ -281,14 +325,13 @@ class TestShiftedExponential:
     def test_shape(self):
         shape_helper(self.X, self.data)
 
-def scaled_weibull(shape, scale, size):
-    X = scale*np.random.weibull(shape, size)
-    return X
-
 class TestWeibull:
+    """
+    Test class for Weibull data.
+    """
 
     shape = 5; scale = 2
-    data = scaled_weibull(shape, scale, size=(100000, 1))
+    data = scale*np.random.weibull(shape, size=(100000, 1))
     X = datathin(data, family="weibull", arg=shape)
 
     def test_means(self):
@@ -302,6 +345,9 @@ class TestWeibull:
         shape_helper(self.X, self.data)
 
 class TestGammaWeibull:
+    """
+    Test class for Gamma-Weibull data.
+    """
 
     shape = 4; rate = 4
     data = np.random.gamma(shape, 1/rate, size=(100000, 1))
@@ -317,26 +363,10 @@ class TestGammaWeibull:
     def test_shape(self):
         shape_helper(self.X, self.data, n_folds=4)
 
-class TestGaussianVariance:
-    """
-    Tests for normal distribution with known mean, unknown variance.
-    """
-
-    mu = 5; var = 2
-    # TODO: size should be (10000,10) here; still have to add size tests
-    data = np.random.normal(mu, scale=np.sqrt(var), size=(100000,1))
-    X = datathin(data, family="normal-variance", arg=mu)
-
-    def test_means(self):
-        mean_helper(self.X, self.data, means=[1.0, 1.0])
-
-    def test_correlation(self):
-        correlation_helper(self.X, self.data)
-
-    def test_shape(self):
-        shape_helper(self.X, self.data)
-
 class TestChiSquared:
+    """
+    Test class for Chi-squared data.
+    """
 
     data = 3*np.random.chisquare(df=5, size=(100000,1))
     X = datathin(data, family="chi-squared", K=5)
@@ -352,6 +382,9 @@ class TestChiSquared:
         shape_helper(self.X, self.data, n_folds=5)
 
 class TestPareto:
+    """
+    Test class for Pareto data.
+    """
 
     a = 6; m = 2
     data = (np.random.pareto(a=a, size=(100000,1)) + 1) * m
@@ -367,8 +400,11 @@ class TestPareto:
     def test_shape(self):
         shape_helper(self.X, self.data)
 
-
 class TestMultivariateGaussian:
+    """
+    Test class for multivariate Gaussian data with known 
+    covariance matrix.
+    """
 
     mu = np.array([1, 2, 3, 4])
     Sig = np.array([[0.6**np.abs(i-j) for i in range(4)] for j in range(4)])
@@ -386,6 +422,9 @@ class TestMultivariateGaussian:
 
 
 class TestMultinomial:
+    """
+    Test class for multinomial data.
+    """
 
     n = 20; pvals = np.array([0.1, 0.2, 0.3, 0.4])
     data = np.random.multinomial(n=n, pvals=pvals, size=100000)
