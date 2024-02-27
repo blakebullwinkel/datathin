@@ -4,29 +4,52 @@ from scipy.special import gamma
 from datathin.thinning import datathin
 
 
-# Helper functions
+# Test helper functions
 
 def get_ith_fold(X, i):
+    """
+    Returns the ith fold of X.
+    """
     return X[:,:,i]
 
 def get_train_test(X, data, i):
+    """
+    Returns X_train and X_test, where X_test is the ith fold 
+    of X and X_train is computing using the property that 
+    X_train and X_test sum to data.
+    """
     X_test = get_ith_fold(X, i)
     X_train = data - X_test
     return X_train, X_test
 
 def assert_mean_threshold(X_train, X_test, means, delta):
+    """
+    Tests whether the means of X_train and X_test are equal to 
+    their expected means, within some delta.
+    """
     assert means[0] - delta <= np.mean(X_train) <= means[0] + delta
     assert means[1] - delta <= np.mean(X_test) <= means[1] + delta 
 
 def assert_multivariate_mean_threshold(X_train, X_test, mean_vec, delta):
+    """
+    Tests whether the means of multivariate data X_train and 
+    X_test are equal to their expected mean vectors, within some 
+    delta.
+    """
     train_mean_vec = np.mean(X_train, axis=0)
     test_mean_vec = np.mean(X_test, axis=0)
     assert np.all(np.abs(train_mean_vec - mean_vec) <= delta)
     assert np.all(np.abs(test_mean_vec - mean_vec) <= delta)
 
-def mean_helper(X, data, means, delta=1e-1, shift_scale=False):
+def mean_helper(X, data, means, delta=1e-1, use_ith_fold=False):
+    """
+    Mean test helper function. If X has only two folds or we
+    specify use_ith_fold=True, X_train and X_test will be indexed
+    directly from the first two folds of X. Otherwise, they are
+    computed using the summation property. 
+    """
     n_folds = X.shape[-1]
-    if n_folds == 2 or shift_scale:
+    if n_folds == 2 or use_ith_fold:
         X_train, X_test = get_ith_fold(X, 0), get_ith_fold(X, 1)
         assert_mean_threshold(X_train, X_test, means, delta)
     else:
@@ -36,25 +59,43 @@ def mean_helper(X, data, means, delta=1e-1, shift_scale=False):
 
 def multivariate_mean_helper(X, mean_vec, delta=1e-1):
     """
-    Assumes K=2.
+    Mean test helper function for multivariate data. Assumes K=2 
+    folds in X.
     """
     X_train, X_test = get_ith_fold(X, 0), get_ith_fold(X, 1)
     assert_multivariate_mean_threshold(X_train, X_test, mean_vec, delta)
 
 def variance_helper(X, variance, delta=1e-1):
+    """
+    Tests whether the variance of X_train and X_test are equal to 
+    their expected variance. Assumes K=2 folds in X.
+    """
     X_train, X_test = get_ith_fold(X, 0), get_ith_fold(X, 1)
     assert variance - delta <= np.var(X_train) <= variance + delta
     assert variance - delta <= np.var(X_test) <= variance + delta
 
 def sum_helper(X, data, delta=1e-6):
+    """
+    Tests whether the folds of X sum to data, within some delta.
+    """
     assert np.all(np.abs(np.sum(X, axis=-1) - data) <= delta)
 
 def assert_correlation_threshold(X_train, X_test, delta):
+    """
+    Tests whether the correlation between X_train and X_test is
+    zero, within some delta.
+    """
     assert np.abs(np.corrcoef(X_train.flatten(), X_test.flatten())[0][1]) <= delta
 
-def correlation_helper(X, data, delta=1e-1, shift_scale=False):
+def correlation_helper(X, data, delta=1e-1, use_ith_fold=False):
+    """
+    Correlation test helper function. If X has only two folds or we
+    specify use_ith_fold=True, X_train and X_test will be indexed
+    directly from the first two folds of X. Otherwise, they are
+    computed using the summation property. 
+    """
     n_folds = X.shape[-1]
-    if n_folds == 2 or shift_scale:
+    if n_folds == 2 or use_ith_fold:
         X_train, X_test = get_ith_fold(X, 0), get_ith_fold(X, 1)
         assert_correlation_threshold(X_train, X_test, delta)
     else:
@@ -63,12 +104,21 @@ def correlation_helper(X, data, delta=1e-1, shift_scale=False):
             assert_correlation_threshold(X_train, X_test, delta)
 
 def multivariate_correlation_helper(X, data, delta=1e-1):
+    """
+    Correlation test helper function for multivariate data. Assumes 
+    K=2 folds in X.
+    """
     X_train, X_test = get_ith_fold(X, 0), get_ith_fold(X, 1)
     n_cols = data.shape[1]
     for i in range(n_cols):
         assert_correlation_threshold(X_train[:,i], X_test[:,i], delta)
 
-# TODO: add shape assertion
+def shape_helper(X, data, n_folds=2):
+    """
+    Tests whether X has the correct shape.
+    """
+    assert X.shape == (*data.shape, n_folds)
+
 
 # Thinning function tests
         
@@ -88,6 +138,8 @@ class TestPoisson:
     def test_correlation(self):
         correlation_helper(self.X, self.data)
 
+    def test_shape(self):
+        shape_helper(self.X, self.data)
 
 class TestExponential:
 
@@ -103,6 +155,8 @@ class TestExponential:
     def test_correlation(self):
         correlation_helper(self.X, self.data)
 
+    def test_shape(self):
+        shape_helper(self.X, self.data, n_folds=5)
 
 class TestGamma:
 
@@ -119,6 +173,8 @@ class TestGamma:
     def test_correlation(self):
         correlation_helper(self.X, self.data)
 
+    def test_shape(self):
+        shape_helper(self.X, self.data)
 
 class TestGaussian1:
 
@@ -134,6 +190,8 @@ class TestGaussian1:
     def test_correlation(self):
         correlation_helper(self.X, self.data)
 
+    def test_shape(self):
+        shape_helper(self.X, self.data)
 
 class TestGaussian2:
 
@@ -150,6 +208,8 @@ class TestGaussian2:
     def test_correlation(self):
         correlation_helper(self.X, self.data)
 
+    def test_shape(self):
+        shape_helper(self.X, self.data)
 
 class TestNegativeBinomial:
 
@@ -167,6 +227,8 @@ class TestNegativeBinomial:
     def test_correlation(self):
         correlation_helper(self.X, self.data)
 
+    def test_shape(self):
+        shape_helper(self.X, self.data)
 
 class TestBinomial:
 
@@ -182,6 +244,8 @@ class TestBinomial:
     def test_correlation(self):
         correlation_helper(self.X, self.data)
 
+    def test_shape(self):
+        shape_helper(self.X, self.data)
 
 class TestScaledBeta:
     """
@@ -194,11 +258,13 @@ class TestScaledBeta:
 
     def test_means(self):
         mu = 10*(7/2)/(7/2 + 1)
-        mean_helper(self.X, self.data, means=[mu, mu], shift_scale=True)
+        mean_helper(self.X, self.data, means=[mu, mu], use_ith_fold=True)
 
     def test_correlation(self):
-        correlation_helper(self.X, self.data, shift_scale=True)
+        correlation_helper(self.X, self.data, use_ith_fold=True)
 
+    def test_shape(self):
+        shape_helper(self.X, self.data)
 
 class TestShiftedExponential:
 
@@ -207,11 +273,13 @@ class TestShiftedExponential:
     X = datathin(data, family="shifted-exponential", arg=lam)
 
     def test_means(self):
-        mean_helper(self.X, self.data, means=[7.0, 7.0], shift_scale=True)
+        mean_helper(self.X, self.data, means=[7.0, 7.0], use_ith_fold=True)
 
     def test_correlation(self):
-        correlation_helper(self.X, self.data, shift_scale=True)
+        correlation_helper(self.X, self.data, use_ith_fold=True)
 
+    def test_shape(self):
+        shape_helper(self.X, self.data)
 
 def scaled_weibull(shape, scale, size):
     X = scale*np.random.weibull(shape, size)
@@ -225,11 +293,13 @@ class TestWeibull:
 
     def test_means(self):
         mu = (1/2)*(2**5)
-        mean_helper(self.X, self.data, means=[mu, mu], shift_scale=True)
+        mean_helper(self.X, self.data, means=[mu, mu], use_ith_fold=True)
 
     def test_correlation(self):
-        correlation_helper(self.X, self.data, shift_scale=True)
+        correlation_helper(self.X, self.data, use_ith_fold=True)
 
+    def test_shape(self):
+        shape_helper(self.X, self.data)
 
 class TestGammaWeibull:
 
@@ -239,11 +309,13 @@ class TestGammaWeibull:
 
     def test_means(self):
         mu = 4**(-1/3)*gamma(1+(1/3))
-        mean_helper(self.X, self.data, means=[mu, mu], shift_scale=True)
+        mean_helper(self.X, self.data, means=[mu, mu], use_ith_fold=True)
 
     def test_correlation(self):
-        correlation_helper(self.X, self.data, shift_scale=True)
+        correlation_helper(self.X, self.data, use_ith_fold=True)
 
+    def test_shape(self):
+        shape_helper(self.X, self.data, n_folds=4)
 
 class TestGaussianVariance:
     """
@@ -261,6 +333,8 @@ class TestGaussianVariance:
     def test_correlation(self):
         correlation_helper(self.X, self.data)
 
+    def test_shape(self):
+        shape_helper(self.X, self.data)
 
 class TestChiSquared:
 
@@ -272,8 +346,10 @@ class TestChiSquared:
         variance_helper(self.X, variance=variance)
 
     def test_correlation(self):
-        correlation_helper(self.X, self.data, shift_scale=True)
+        correlation_helper(self.X, self.data, use_ith_fold=True)
 
+    def test_shape(self):
+        shape_helper(self.X, self.data, n_folds=5)
 
 class TestPareto:
 
@@ -287,6 +363,9 @@ class TestPareto:
 
     def test_correlation(self):
         correlation_helper(self.X, self.data)
+
+    def test_shape(self):
+        shape_helper(self.X, self.data)
 
 
 class TestMultivariateGaussian:
@@ -302,6 +381,9 @@ class TestMultivariateGaussian:
     def test_correlation(self):
         multivariate_correlation_helper(self.X, self.data)
 
+    def test_shape(self):
+        shape_helper(self.X, self.data)
+
 
 class TestMultinomial:
 
@@ -314,3 +396,6 @@ class TestMultinomial:
 
     def test_correlation(self):
         multivariate_correlation_helper(self.X, self.data)
+
+    def test_shape(self):
+        shape_helper(self.X, self.data)

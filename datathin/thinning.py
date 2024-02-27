@@ -139,8 +139,7 @@ def datathin(data, family, K=2, epsilon=None, arg=None) -> np.ndarray:
     return X
 
 if __name__ == "__main__":
-    n = 20; pvals = np.array([0.1, 0.2, 0.3, 0.4])
-    data = np.random.multinomial(n=n, pvals=pvals, size=100000)
-    print(data.shape)
-    X = datathin(data, family="multinomial", arg=n)
-    print(X.shape)
+    data = np.random.poisson(lam=7, size=(100000,1))
+    X = datathin(data, family="poisson", epsilon=[0.3, 0.7])
+    n_folds = 2
+    print((*data.shape, n_folds))
