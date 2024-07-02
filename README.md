@@ -1,6 +1,6 @@
 # datathin
 
-This is a Python version of data thinning, a method proposed by [Neufeld et al.](https://jmlr.org/papers/volume25/23-0446/23-0446.pdf). The code closely follows the original [R implementation](https://anna-neufeld.github.io/datathin/index.html) and uses a similar syntax. For example, to thin a vector of Poisson distributed `data`, simply call the `datathin` function, specifying the `family` and `epsilon` parameters:
+This is a Python implementation of data thinning, a method proposed by [Neufeld et al.](https://jmlr.org/papers/volume25/23-0446/23-0446.pdf). The code closely follows the original [R version](https://anna-neufeld.github.io/datathin/index.html) and uses a similar syntax. For example, to thin a vector of Poisson distributed `data`, simply call the `datathin` function, specifying the `family` and `epsilon` parameters:
 
 ```
 from datathin.thinning import datathin
